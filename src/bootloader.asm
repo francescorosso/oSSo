@@ -2,8 +2,14 @@
 [ORG 0x7C00]	;Origin, tell the assembler that where the code will
 				;be in memory after it is been loaded
 
-MOV AL, 0x23	;print #
-CALL PrintCharacter	;Call print string procedure
+global  program 
+section .bss 
+program resb 512
+
+section .text   
+
+CALL LoadProgram
+JMP program
 JMP $ 		;Infinite loop, hang it here.
 
 
@@ -15,6 +21,17 @@ MOV BL, 0x07	;Text attribute 0x07 is lightgrey font on black background
 
 INT 0x10	;Call video interrupt
 RET		;Return to calling procedure
+
+LoadProgram:
+MOV AH, 0x02 ;read
+MOV AL, 0x01 ;1 sector
+MOV CH, 0x00 ;0 cylinder
+MOV CL, 0x01 ;1st sector
+MOV DH, 0x00 ;0 head
+MOV ES, SEG program
+MOV BX, program
+INT 0x13
+RET
 
 TIMES 510 - ($ - $$) db 0	;Fill the rest of sector with 0
 DW 0xAA55			;Add boot signature at the end of bootloader
